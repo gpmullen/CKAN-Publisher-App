@@ -1,8 +1,6 @@
 import streamlit as st
 import json
 from snowflake.snowpark import Session
-from snowflake.snowpark import DataFrame as sdf
-import pandas as pd
 
 try:
     #attempt file based credentials
@@ -62,9 +60,9 @@ def getListValues(key):
         return st.session_state[key]
 
 def filterSchema():
-    if txtDatabase:
+    if ddlDatabase:
         lstSchemas= getListValues('schemas')
-        return [row[1] for row in lstSchemas if row[4] == txtDatabase]
+        return [row[1] for row in lstSchemas if row[4] == ddlDatabase]
     else:
         return []
 def setContext():
@@ -72,9 +70,9 @@ def setContext():
     'account': txtAccountLocator,
     'user': txtUserName,
     'password': txtPassword,
-    'schema': txtSchema,
-    'database': txtDatabase,
-    'warehouse': txtWarehouse,
+    'schema': ddlSchema,
+    'database': ddlDatabase,
+    'warehouse': ddlWarehouse,
     'role': ddlRoles
     }
     st.session_state.connection_parameters = CONNECTION_PARAMETERS
@@ -86,8 +84,8 @@ txtPassword = st.text_input('Password', type="password", value=password)
 btnConnect = st.button('Get Context', on_click=getContext,type='secondary')
 
 ddlRoles = st.selectbox('Roles', options=getListValues('roles'))
-txtWarehouse = st.selectbox('Warehouse', options=getListValues('whs'))
-txtDatabase = st.selectbox('Database', options=getListValues('dbs'))
-txtSchema = st.selectbox('Schema', options=filterSchema())
+ddlWarehouse = st.selectbox('Warehouse', options=getListValues('whs'))
+ddlDatabase = st.selectbox('Database', options=getListValues('dbs'))
+ddlSchema = st.selectbox('Schema', options=filterSchema())
 btnSet = st.button('Set Context', on_click=setContext, type='primary')
 
