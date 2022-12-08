@@ -12,39 +12,48 @@ try:
         password = data['password']
         account = data["account"]
 except:
-    print('nothing to do.')
+    username = ''
+    password = ''
+    account = ''
 
 def getContext():
-    if 'connection_parameters' in st.session_state:
-        CONNECTION_PARAMETERS = st.session_state.connection_parameters
-    else:
-        CONNECTION_PARAMETERS = {
-        'account': txtAccountLocator,
-        'user': txtUserName,
-        'password': txtPassword,
-        'loginTimeout': 10
-        }
-    session = Session.builder.configs(CONNECTION_PARAMETERS).create()
-    currentwh = session.sql('select current_warehouse()').collect()
-    if currentwh[0][0] is None: #need a warehouse to check for roles assigned to the user
-        fullroles = session.sql('SHOW ROLES').collect()
-        roles = [row[1] for row in fullroles]
-        st.info('Roles displayed will depend on whether a warehouse was selected. Set Context with a WH and Get Context again for a filtered list of roles associated to your user.')
-    else: #get all the roles in Snowflake
-        roles = session.sql('select value::STRING ROLE from table(flatten(input => parse_json(current_available_roles())))').to_pandas()
+    if txtUserName and txtAccountLocator and txtPassword:
+        if 'connection_parameters' in st.session_state:
+            CONNECTION_PARAMETERS = st.session_state.connection_parameters
+        else:
+            CONNECTION_PARAMETERS = {
+            'account': txtAccountLocator,
+            'user': txtUserName,
+            'password': txtPassword,
+            'loginTimeout': 10
+            }
+        session = Session.builder.configs(CONNECTION_PARAMETERS).create()
+        currentwh = session.sql('select current_warehouse()').collect()
+        if currentwh[0][0] is None: #need a warehouse to check for roles assigned to the user
+            fullroles = session.sql('SHOW ROLES').collect()
+            roles = [row[1] for row in fullroles]
+            st.info('Roles displayed will depend on whether a warehouse was selected. Set Context with a WH and Get Context again for a filtered list of roles associated to your user.')
+        else: #get all the roles in Snowflake
+            roles = session.sql('select value::STRING ROLE from table(flatten(input => parse_json(current_available_roles())))').to_pandas()
+            
+        whs = session.sql('SHOW WAREHOUSES').collect()
+        fulldbs = session.sql('SHOW DATABASES').collect()
+        dbs = [db[1] for db in fulldbs]
+        schemas = session.sql('SHOW SCHEMAS').collect()
         
-    whs = session.sql('SHOW WAREHOUSES').collect()
-    fulldbs = session.sql('SHOW DATABASES').collect()
-    dbs = [db[1] for db in fulldbs]
-    
-    schemas = session.sql('SHOW SCHEMAS').collect()
-    st.session_state.roles = roles
-    st.session_state.whs = whs
-    st.session_state.dbs = dbs
-    st.session_state.schemas = schemas
-    st.session_state.filteredSchemas = schemas
-    
-    session.close()
+        st.session_state.roles = roles
+        st.session_state.whs = whs
+        st.session_state.dbs = dbs
+        st.session_state.schemas = schemas
+        
+        session.close()
+    else:
+        if not txtUserName:
+            st.info('User name is empty')
+        if not txtPassword:
+            st.info('Password is empty')
+        if not txtAccountLocator:
+            st.info('Account Locator is empty')
 
 def getListValues(key):
     if key not in st.session_state:
