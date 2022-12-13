@@ -13,8 +13,10 @@ except:
     username = ''
     password = ''
     account = ''
+if 'getContext_set' not in st.session_state:
+    st.session_state.getContext_set = False
 
-def getContext():
+def getContext(txtUserName, txtAccountLocator,txtPassword):
     if txtUserName and txtAccountLocator and txtPassword:
         if 'connection_parameters' in st.session_state:
             CONNECTION_PARAMETERS = st.session_state.connection_parameters
@@ -30,7 +32,7 @@ def getContext():
         if currentwh[0][0] is None: #need a warehouse to check for roles assigned to the user
             fullroles = session.sql('SHOW ROLES').collect()
             roles = [row[1] for row in fullroles]
-            st.info('Roles displayed will depend on whether a warehouse was selected. Set Context with a WH and Get Context again for a filtered list of roles associated to your user.')
+            st.info('All roles displayed because a Warehouse was not selected. Set Context with a WH and Get Context again for a filtered list of roles associated to your user.')
         else: #get all the roles in Snowflake
             roles = session.sql('select value::STRING ROLE from table(flatten(input => parse_json(current_available_roles())))').to_pandas()
             
@@ -45,6 +47,7 @@ def getContext():
         st.session_state.schemas = schemas
         
         session.close()
+        st.session_state.getContext_set = True
     else:
         if not txtUserName:
             st.info('User name is empty')
@@ -59,13 +62,13 @@ def getListValues(key):
     else:
         return st.session_state[key]
 
-def filterSchema():
+def filterSchema(ddlDatabase):
     if ddlDatabase:
         lstSchemas= getListValues('schemas')
         return [row[1] for row in lstSchemas if row[4] == ddlDatabase]
     else:
         return []
-def setContext():
+def setContext(txtAccountLocator,txtUserName,txtPassword,ddlSchema, ddlDatabase,ddlWarehouse,ddlRoles):
     CONNECTION_PARAMETERS = {
     'account': txtAccountLocator,
     'user': txtUserName,
@@ -76,16 +79,20 @@ def setContext():
     'role': ddlRoles
     }
     st.session_state.connection_parameters = CONNECTION_PARAMETERS
+    st.session_state.context_set = True
+    st.success('Saved!', icon="✅")
     
+with st.form('GetContext'):
+    txtAccountLocator = st.text_input('Account Locator',key='txtAccountLocator', value=account)
+    txtUserName = st.text_input('User Name', value=username)
+    txtPassword = st.text_input('Password', type="password", value=password)
+    btnConnect = st.form_submit_button('Get Context', on_click=getContext,args=[txtUserName, txtAccountLocator,txtPassword],type='secondary')
 
-txtAccountLocator = st.text_input('Account Locator',key='txtAccountLocator', value=account)
-txtUserName = st.text_input('User Name', value=username)
-txtPassword = st.text_input('Password', type="password", value=password)
-btnConnect = st.button('Get Context', on_click=getContext,type='secondary')
-
-ddlRoles = st.selectbox('Roles', options=getListValues('roles'))
-ddlWarehouse = st.selectbox('Warehouse', options=getListValues('whs'))
-ddlDatabase = st.selectbox('Database', options=getListValues('dbs'))
-ddlSchema = st.selectbox('Schema', options=filterSchema())
-btnSet = st.button('Set Context', on_click=setContext, type='primary')
+if st.session_state.getContext_set:
+    with st.container():
+        ddlRoles = st.selectbox('Roles', options=getListValues('roles'))
+        ddlWarehouse = st.selectbox('Warehouse', options=getListValues('whs'))
+        ddlDatabase = st.selectbox('Database', options=getListValues('dbs'))
+        ddlSchema = st.selectbox('Schema', options=filterSchema(ddlDatabase))
+        btnSet = st.button('Set Context', on_click=setContext, args=[txtAccountLocator,txtUserName,txtPassword,ddlSchema, ddlDatabase,ddlWarehouse,ddlRoles], type='primary')
 
