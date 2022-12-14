@@ -2,6 +2,11 @@ import streamlit as st
 from snowflake.snowpark import Session
 import re
 
+Control_DB = 'OPEN_DATA'
+Control_Schema = 'DEVELOPMENT'
+Control_Table = 'CONTROL'
+st.info("Control table is currently set to {0}.{1}.{2}".format(Control_DB,Control_Schema,Control_Table))
+
 def getTables():
     session = Session.builder.configs(st.session_state.connection_parameters).create()
     ret = session.sql('SHOW TABLES').collect()
@@ -17,7 +22,7 @@ def publishTable(txtDesc,ddlAccessLevel,txtContactName,txtContactEmail,txtRights
 
         dfControl = session.create_dataframe([[txtDesc,ddlAccessLevel,txtContactName,txtContactEmail,txtRights,ddlFrequency,txtTags,txtOwnerOrg]],schema=["Notes","Access_Level","Contact_Name","Contact_Email","Rights","Accural_Periodicity","Tags","Owner_Org"])
         #insert
-        dfControl.write.mode("append").save_as_table("Control")
+        dfControl.write.mode("append").save_as_table("{Control_DB}.{Control_Schema}.{Control_Table}")
         session.close()
         st.success('Saved!', icon="✅")
     else:      
@@ -44,13 +49,16 @@ if 'connection_parameters' not in st.session_state:
 else:
     with st.form('frmPublish'):
         st.info('Choose a table to publish. All metadata must be populated.')
-        txtDesc = st.text_input("Description", help='Required')
-        ddlAccessLevel = st.selectbox("Access Level",options=('Public','Restricted','Non-public'), help='Required')
-        txtContactName = st.text_input("Contact Name", help='Required')
-        txtContactEmail = st.text_input("Contact Email", help='Required')
-        txtRights = st.text_input("Rights", help='Required', value='Public Use')
-        ddlFrequency = st.selectbox("Frequency", help='Required', options=('Irregular','Continuously updated','Hourly','Daily','Twice a week','Semiweekly','Biweekly','Semimonthly','Monthly','Every Two Months','Quarterly','Semiannual','Biennial','Decennial'))
-        txtTags = st.text_input("Tags", help='Required', value='Snowflake')
-        txtOwnerOrg = st.text_input("Owner Org", help='Required',disabled=1,value='sf-testing')
-        ddlTableToPublish = st.selectbox("Tables to Publish", options=getTables(), help='Required')
+        col1, col2 = st.columns(2)
+        with col1:
+            txtDesc = st.text_input("Description", help='Required')
+            ddlAccessLevel = st.selectbox("Access Level",options=('Public','Restricted','Non-public'), help='Required')
+            txtContactName = st.text_input("Contact Name", help='Required')
+            txtContactEmail = st.text_input("Contact Email", help='Required')
+            txtRights = st.text_input("Rights", help='Required', value='Public Use')
+        with col2:
+            ddlFrequency = st.selectbox("Frequency", help='Required', options=('Irregular','Continuously updated','Hourly','Daily','Twice a week','Semiweekly','Biweekly','Semimonthly','Monthly','Every Two Months','Quarterly','Semiannual','Biennial','Decennial'))
+            txtTags = st.text_input("Tags", help='Required', value='Snowflake')
+            txtOwnerOrg = st.text_input("Owner Org", help='Required',disabled=1,value='sf-testing')
+            ddlTableToPublish = st.selectbox("Tables to Publish", options=getTables(), help='Required')
         btnPublish = st.form_submit_button("Publish", on_click=publishTable, args=[txtDesc,ddlAccessLevel,txtContactName,txtContactEmail,txtRights,ddlFrequency,txtTags,txtOwnerOrg,ddlTableToPublish])
