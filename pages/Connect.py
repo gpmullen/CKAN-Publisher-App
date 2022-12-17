@@ -16,7 +16,13 @@ except:
 if 'getContext_set' not in st.session_state:
     st.session_state.getContext_set = False
 
-def getContext(txtUserName, txtAccountLocator,txtPassword):
+def getContext():
+    if "txtUserName" in st.session_state: txtUserName=st.session_state["txtUserName"] 
+    #else: txtUserName = ''
+    if "txtAccountLocator" in st.session_state: txtAccountLocator=st.session_state["txtAccountLocator"] 
+    #else: txtAccountLocator = ''
+    if "txtPassword" in st.session_state: txtPassword=st.session_state["txtPassword"] 
+    #else: txtPassword = ''
     if txtUserName and txtAccountLocator and txtPassword:
         if 'connection_parameters' in st.session_state:
             CONNECTION_PARAMETERS = st.session_state.connection_parameters
@@ -84,9 +90,9 @@ def setContext(txtAccountLocator,txtUserName,txtPassword,ddlSchema, ddlDatabase,
     
 with st.form('GetContext'):
     txtAccountLocator = st.text_input('Account Locator',key='txtAccountLocator', value=account)
-    txtUserName = st.text_input('User Name', value=username)
-    txtPassword = st.text_input('Password', type="password", value=password)
-    btnConnect = st.form_submit_button('Get Context', on_click=getContext,args=[txtUserName, txtAccountLocator,txtPassword],type='secondary')
+    txtUserName = st.text_input('User Name', value=username, key='txtUserName')
+    txtPassword = st.text_input('Password', type="password", value=password, key='txtPassword')
+    btnConnect = st.form_submit_button('Get Context', on_click=getContext,type='secondary')
 
 if st.session_state.getContext_set:
     with st.container():
