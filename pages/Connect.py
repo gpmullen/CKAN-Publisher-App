@@ -18,21 +18,16 @@ if 'getContext_set' not in st.session_state:
 
 def getContext():
     if "txtUserName" in st.session_state: txtUserName=st.session_state["txtUserName"] 
-    #else: txtUserName = ''
     if "txtAccountLocator" in st.session_state: txtAccountLocator=st.session_state["txtAccountLocator"] 
-    #else: txtAccountLocator = ''
     if "txtPassword" in st.session_state: txtPassword=st.session_state["txtPassword"] 
-    #else: txtPassword = ''
+
     if txtUserName and txtAccountLocator and txtPassword:
-        if 'connection_parameters' in st.session_state:
-            CONNECTION_PARAMETERS = st.session_state.connection_parameters
-        else:
-            CONNECTION_PARAMETERS = {
-            'account': txtAccountLocator,
-            'user': txtUserName,
-            'password': txtPassword,
-            'loginTimeout': 10
-            }
+        CONNECTION_PARAMETERS = {
+        'account': txtAccountLocator,
+        'user': txtUserName,
+        'password': txtPassword,
+        'loginTimeout': 10
+        }
         session = Session.builder.configs(CONNECTION_PARAMETERS).create()
         currentwh = session.sql('select current_warehouse()').collect()
         if currentwh[0][0] is None: #need a warehouse to check for roles assigned to the user
@@ -96,9 +91,10 @@ with st.form('GetContext'):
 
 if st.session_state.getContext_set:
     with st.container():
+        st.info('This sets the context for the Control table')
         ddlRoles = st.selectbox('Roles', options=getListValues('roles'))
-        ddlWarehouse = st.selectbox('Warehouse', options=getListValues('whs'))
-        ddlDatabase = st.selectbox('Database', options=getListValues('dbs'))
+        ddlWarehouse = st.selectbox('Warehouse', options=getListValues('whs'),help='Consider using the OPEN_DATA_VWH')
+        ddlDatabase = st.selectbox('Database', options=getListValues('dbs'), help='Consider using the OPEN_DATA database')
         ddlSchema = st.selectbox('Schema', options=filterSchema(ddlDatabase))
         btnSet = st.button('Set Context', on_click=setContext, args=[txtAccountLocator,txtUserName,txtPassword,ddlSchema, ddlDatabase,ddlWarehouse,ddlRoles], type='primary')
 
