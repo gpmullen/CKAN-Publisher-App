@@ -26,4 +26,5 @@ else:
                 concat_cols = row["NOTES"] + row["ACCESSLEVEL"] + row["CONTACT_NAME"] + row["CONTACT_EMAIL"] + row["RIGHTS"] + row["ACCRUALPERIODICITY"] + row["TAG_STRING"] + row["OWNER_ORG"] + row["DATABASE_NAME"] + row["SCHEMA_NAME"] + row["TABLE_NAME"] + row["STATUS"]
                 md5 = hashlib.md5(concat_cols.encode()).hexdigest()                
                 session.sql("DELETE from CONTROL WHERE md5(concat(NOTES,ACCESSLEVEL,CONTACT_NAME,CONTACT_EMAIL,RIGHTS,ACCRUALPERIODICITY,TAG_STRING,OWNER_ORG,DATABASE_NAME,SCHEMA_NAME,TABLE_NAME,STATUS))  = '{0}' ".format(md5)).collect()        
+        st.experimental_rerun()        
     session.close()

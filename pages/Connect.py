@@ -26,7 +26,8 @@ def getContext():
         'account': txtAccountLocator,
         'user': txtUserName,
         'password': txtPassword,
-        'loginTimeout': 10
+        'loginTimeout': 10,
+        'authenticator' : 'username_password_mfa'
         }
         session = Session.builder.configs(CONNECTION_PARAMETERS).create()
         currentwh = session.sql('select current_warehouse()').collect()

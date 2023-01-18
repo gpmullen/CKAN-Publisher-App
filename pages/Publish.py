@@ -48,7 +48,9 @@ def mapFrequency(freq):
     elif freq == 'Decennial':
         return 'R/P10Y'
     
-    
+def refresh():
+       del st.session_state.tables
+
 def publishTable():
     if "txtDesc" in st.session_state: txtDesc=st.session_state["txtDesc"] 
     if "ddlAccessLevel" in st.session_state: ddlAccessLevel=st.session_state["ddlAccessLevel"] 
@@ -129,4 +131,9 @@ else:
         ddlDatabaseToPublish = st.selectbox("Database", options=getDatabases(), help='Required', key='ddlDatabaseToPublish')
         ddlSchemaToPublish = st.selectbox("Schema", options=getSchemas(), help='Required', key='ddlSchemaToPublish')
     ddlTableToPublish = st.selectbox("Tables to Publish", options=getTables(), help='Required', key='ddlTableToPublish')
-    btnPublish = st.button("Publish", on_click=publishTable)
+    
+    col3,col4 = st.columns(2)
+    with col3:
+         btnPublish = st.button("Publish", on_click=publishTable, type='primary')
+    with col4:
+        btnRefresh = st.button("Refresh", on_click=refresh)
