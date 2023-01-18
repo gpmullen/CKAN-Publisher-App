@@ -1,0 +1,1 @@
+create or replace stage published_extracts encryption = (type = 'SNOWFLAKE_SSE');
